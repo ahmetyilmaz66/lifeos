@@ -33,11 +33,14 @@ export function reminderDatesForItem(item: LifeItem, today = todayInIstanbul()) 
     .map((date) => `${date}T09:00:00+03:00`);
 }
 
+const reminderChannels = ["in_app", "email"] as const;
+
 export async function createMissingReminders(supabase: SupabaseClient, item: LifeItem) {
   const dates = reminderDatesForItem(item);
   if (!dates.length) return { attempted: 0, error: null };
-  const { error } = await supabase.from("reminders").upsert(dates.map((remindAt) => ({ user_id: item.user_id, life_item_id: item.id, remind_at: remindAt, status: "pending", channel: "in_app" })), { onConflict: "user_id,life_item_id,remind_at,channel", ignoreDuplicates: true });
-  return { attempted: dates.length, error };
+  const rows = dates.flatMap((remindAt) => reminderChannels.map((channel) => ({ user_id: item.user_id, life_item_id: item.id, remind_at: remindAt, status: "pending", channel })));
+  const { error } = await supabase.from("reminders").upsert(rows, { onConflict: "user_id,life_item_id,remind_at,channel", ignoreDuplicates: true });
+  return { attempted: rows.length, error };
 }
 
 export async function reconcileRemindersForItem(supabase: SupabaseClient, userId: string, lifeItemId: string) {
