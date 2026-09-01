@@ -40,10 +40,13 @@ export class GeminiProvider implements DocumentAnalysisProvider {
     const media = input.fileType === "application/pdf"
       ? { type: "document" as const, mime_type: input.fileType, data: input.content.toString("base64") }
       : { type: "image" as const, mime_type: input.fileType, data: input.content.toString("base64") };
+    const knownProvidersLine = input.knownProviders?.length
+      ? ` Known providers and their LifeOS category (use these exact category values when the document's provider matches one, even loosely — e.g. by brand name or common alias): ${input.knownProviders.map((p) => `${p.name}=${p.category}`).join(", ")}. If the provider is not in this list, classify it as best you can from context — a new, unrecognized provider is expected and fine.`
+      : "";
     const response = await this.client.interactions.create({
       model,
       input: [
-        { type: "text", text: `${documentAnalysisInstructions} Analyze this Turkish document for LifeOS reminders and organization. Preserve currency when clearly visible. Do not retain unnecessary personal identifiers.` },
+        { type: "text", text: `${documentAnalysisInstructions} Analyze this Turkish document for LifeOS reminders and organization. Preserve currency when clearly visible. Do not retain unnecessary personal identifiers.${knownProvidersLine}` },
         media,
       ],
       response_format: {

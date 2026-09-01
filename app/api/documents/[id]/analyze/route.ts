@@ -35,8 +35,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   try {
     const { data: file, error: downloadError } = await supabase.storage.from("lifeos-documents").download(document.storage_path);
     if (downloadError || !file) throw new Error("DOCUMENT_DOWNLOAD_FAILED");
+    const { data: knownProviders } = await supabase.from("providers").select("name, category");
     const result = await Promise.race([
-      analyzeDocument({ fileName: document.file_name, fileType: document.file_type, content: Buffer.from(await file.arrayBuffer()) }),
+      analyzeDocument({ fileName: document.file_name, fileType: document.file_type, content: Buffer.from(await file.arrayBuffer()), knownProviders: knownProviders ?? [] }),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("AI_TIMEOUT")), requestTimeoutMs)),
     ]);
     const { data: analysis, error: analysisError } = await supabase.from("document_analyses").upsert({ user_id: userId, document_id: id, document_type: result.documentType, category: result.category, title: result.title, provider: result.provider, amount: result.amount, currency: result.currency, start_date: result.startDate, end_date: result.endDate, next_due_date: result.nextDueDate, recurrence: result.recurrence, description: result.description, confidence: result.confidence, extracted_fields: result.extractedFields, warnings: result.warnings, updated_at: new Date().toISOString() }, { onConflict: "document_id" }).select().single();

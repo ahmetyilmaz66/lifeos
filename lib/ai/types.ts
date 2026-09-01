@@ -28,6 +28,7 @@ export type DocumentAnalysisInput = {
   fileName: string;
   fileType: string;
   content: Buffer;
+  knownProviders?: { name: string; category: string }[];
 };
 
 export const documentAnalysisInstructions = [
