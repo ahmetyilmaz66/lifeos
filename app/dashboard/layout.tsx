@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Archive, Bell, CalendarDays, CreditCard, FileText, GitCommitVertical, Inbox, LayoutDashboard, Package, Search, Settings, ShieldCheck, Sparkles, WalletCards } from "lucide-react";
+import { Archive, Bell, CalendarDays, CreditCard, FileText, GitCommitVertical, Inbox, LayoutDashboard, Package, PiggyBank, Search, Settings, ShieldCheck, Sparkles, WalletCards } from "lucide-react";
 
 import { LogoutButton } from "@/components/logout-button";
 import { SidebarNav, MobileNav } from "@/components/dashboard-nav";
@@ -10,6 +10,7 @@ const navigation = [
   { label: "Bugün", href: "/dashboard/today", icon: CalendarDays },
   { label: "Zaman Akışı", href: "/dashboard/timeline", icon: GitCommitVertical },
   { label: "Ara", href: "/dashboard/search", icon: Search },
+  { label: "ParaKaçağı", href: "/dashboard/savings", icon: PiggyBank },
   { label: "Gelen Kutusu", href: "/dashboard/inbox", icon: Inbox },
   { label: "Abonelikler", href: "/dashboard/subscriptions", icon: CreditCard },
   { label: "Faturalar", href: "/dashboard/bills", icon: WalletCards },
