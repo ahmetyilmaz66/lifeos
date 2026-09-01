@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "LifeOS",
   },
   icons: {
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#171717",
+  themeColor: "#0d0b12",
 };
 
 const geistSans = Geist({
@@ -44,7 +44,7 @@ export default function RootLayout({
       <body className={`${geistSans.className} antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
