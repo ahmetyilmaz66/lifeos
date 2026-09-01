@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Archive, Bell, CalendarDays, CreditCard, FileText, Inbox, LayoutDashboard, Package, Settings, Sparkles, WalletCards } from "lucide-react";
+import { Archive, Bell, CalendarDays, CreditCard, FileText, Inbox, LayoutDashboard, Package, Settings, ShieldCheck, Sparkles, WalletCards } from "lucide-react";
 
 import { LogoutButton } from "@/components/logout-button";
 import { createClient } from "@/lib/supabase/server";
@@ -23,15 +23,16 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
   const userId = data?.claims?.sub;
   if (!userId) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", userId).maybeSingle();
+  const { data: profile } = await supabase.from("profiles").select("full_name, is_admin").eq("id", userId).maybeSingle();
   const firstName = profile?.full_name?.trim().split(/\s+/)[0];
+  const nav = profile?.is_admin ? [...navigation, { label: "Admin", href: "/admin", icon: ShieldCheck }] : navigation;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-border bg-card lg:flex lg:flex-col">
         <div className="flex h-20 items-center gap-3 border-b border-border px-6"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Sparkles size={18} /></div><span className="text-lg font-semibold tracking-tight">LifeOS</span></div>
         <nav className="flex-1 space-y-1 px-3 py-5" aria-label="LifeOS menüsü">
-          {navigation.map(({ label, href, icon: Icon }) => <Link key={href} href={href} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"><Icon size={17} strokeWidth={1.8} />{label}</Link>)}
+          {nav.map(({ label, href, icon: Icon }) => <Link key={href} href={href} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"><Icon size={17} strokeWidth={1.8} />{label}</Link>)}
         </nav>
         <div className="border-t border-border p-3"><LogoutButton /></div>
       </aside>
