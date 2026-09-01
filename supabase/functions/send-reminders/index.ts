@@ -82,6 +82,7 @@ Deno.serve(async (req) => {
     const item = itemsById.get(reminder.life_item_id);
     const to = emailByUser.get(reminder.user_id);
     if (!item || !to) {
+      console.error("Skipping reminder: missing item or user email", { reminderId: reminder.id, hasItem: !!item, hasEmail: !!to });
       failed++;
       continue;
     }
@@ -100,6 +101,8 @@ Deno.serve(async (req) => {
       await supabase.from("reminders").update({ status: "sent", sent_at: new Date().toISOString() }).eq("id", reminder.id);
       sent++;
     } else {
+      const bodyText = await response.text();
+      console.error("Resend send failed", { reminderId: reminder.id, status: response.status, body: bodyText });
       failed++;
     }
   }
