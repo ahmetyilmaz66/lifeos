@@ -33,7 +33,7 @@ export function reminderDatesForItem(item: LifeItem, today = todayInIstanbul()) 
     .map((date) => `${date}T09:00:00+03:00`);
 }
 
-const reminderChannels = ["in_app", "email"] as const;
+const reminderChannels = ["in_app", "email", "push"] as const;
 
 export async function createMissingReminders(supabase: SupabaseClient, item: LifeItem) {
   const dates = reminderDatesForItem(item);
