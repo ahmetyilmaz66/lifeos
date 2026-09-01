@@ -88,6 +88,24 @@ export function categoryLabel(category: string | null) {
   )[category ?? ""] ?? "Kayıt";
 }
 
+// Fixed categorical order from the dataviz skill's validated 8-slot palette
+// (blue, orange, aqua, yellow, magenta, green, violet, red) — mapped once,
+// never reassigned per-user, so a category always reads as the same color.
+export function categorySpendColor(category: string | null) {
+  return (
+    {
+      digital_subscription: "bg-[#2a78d6] dark:bg-[#3987e5]",
+      bill: "bg-[#eb6834] dark:bg-[#d95926]",
+      vehicle: "bg-[#1baf7a] dark:bg-[#199e70]",
+      home: "bg-[#eda100] dark:bg-[#c98500]",
+      product: "bg-[#e87ba4] dark:bg-[#d55181]",
+      warranty: "bg-[#008300] dark:bg-[#008300]",
+      family: "bg-[#4a3aa7] dark:bg-[#9085e9]",
+      document: "bg-[#e34948] dark:bg-[#e66767]",
+    } as Record<string, string>
+  )[category ?? ""] ?? "bg-muted-foreground/50";
+}
+
 export function categoryColorClass(category: string | null) {
   return (
     {
