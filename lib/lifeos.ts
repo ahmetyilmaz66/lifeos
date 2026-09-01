@@ -50,6 +50,28 @@ export function isClosed(item: LifeItem) {
   return ["cancelled", "inactive", "completed", "closed"].includes(item.status?.toLowerCase() ?? "");
 }
 
+// Heuristic masking for sensitive numbers (IBAN, TC kimlik no, kart no, telefon) in free-text
+// fields the AI extracted, per the "hassas bilgilerin maskelenmesi" privacy rule. Regex-based,
+// so it can miss unusual formats — good enough for display, not a compliance guarantee.
+export function maskSensitiveText(text: string | null) {
+  if (!text) return text;
+  let result = text;
+  result = result.replace(/\bTR\d{2}(?:[ ]?\d{4}){5}[ ]?\d{2}\b/gi, (match) => {
+    const digits = match.replace(/\s/g, "");
+    return `TR•• •••• •••• •••• •••• ••${digits.slice(-2)}`;
+  });
+  result = result.replace(/\b\d{4}[ -]?\d{4}[ -]?\d{4}[ -]?\d{4}\b/g, (match) => {
+    const digits = match.replace(/[ -]/g, "");
+    return `•••• •••• •••• ${digits.slice(-4)}`;
+  });
+  result = result.replace(/\b\d{11}\b/g, (match) => `•••••••${match.slice(-4)}`);
+  result = result.replace(/\b0?5\d{2}[ ]?\d{3}[ ]?\d{2}[ ]?\d{2}\b/g, (match) => {
+    const digits = match.replace(/\s/g, "");
+    return `${digits.slice(0, digits.length - 8)}•• ••• •• ${digits.slice(-2)}`;
+  });
+  return result;
+}
+
 export function categoryLabel(category: string | null) {
   return ({ digital_subscription: "Abonelik", bill: "Fatura", vehicle: "Araç", product: "Ürün", warranty: "Garanti" } as Record<string, string>)[category ?? ""] ?? "Kayıt";
 }
