@@ -73,5 +73,33 @@ export function maskSensitiveText(text: string | null) {
 }
 
 export function categoryLabel(category: string | null) {
-  return ({ digital_subscription: "Abonelik", bill: "Fatura", vehicle: "Araç", product: "Ürün", warranty: "Garanti" } as Record<string, string>)[category ?? ""] ?? "Kayıt";
+  return (
+    {
+      digital_subscription: "Abonelik",
+      bill: "Fatura",
+      vehicle: "Araç",
+      product: "Ürün",
+      warranty: "Garanti",
+      document: "Belge",
+      home: "Ev",
+      family: "Aile",
+      other: "Kayıt",
+    } as Record<string, string>
+  )[category ?? ""] ?? "Kayıt";
+}
+
+export function categoryColorClass(category: string | null) {
+  return (
+    {
+      digital_subscription: "bg-chart-5",
+      bill: "bg-chart-1",
+      vehicle: "bg-chart-3",
+      product: "bg-chart-4",
+      warranty: "bg-chart-2",
+      document: "bg-chart-4",
+      home: "bg-chart-2",
+      family: "bg-chart-5",
+      other: "bg-muted-foreground",
+    } as Record<string, string>
+  )[category ?? ""] ?? "bg-muted-foreground";
 }
