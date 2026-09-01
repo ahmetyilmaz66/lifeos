@@ -1,0 +1,9 @@
+import Link from "next/link";
+import { CalendarClock } from "lucide-react";
+
+import { categoryLabel, formatDueDate, formatMoney, isClosed, todayInIstanbul, type LifeItem } from "@/lib/lifeos";
+
+export default function LifeItemList({ items, emptyMessage = "Henüz burada gösterilecek bir kayıt yok." }: { items: LifeItem[]; emptyMessage?: string }) {
+  if (!items.length) return <div className="rounded-xl border border-dashed border-border bg-card px-6 py-14 text-center"><CalendarClock className="mx-auto text-muted-foreground" size={25} /><p className="mt-4 text-sm text-muted-foreground">{emptyMessage}</p></div>;
+  return <div className="overflow-hidden rounded-xl border border-border bg-card divide-y divide-border">{items.map((item) => { const overdue = !!item.next_due_date && item.next_due_date < todayInIstanbul() && !isClosed(item); return <Link key={item.id} href={`/dashboard/items/${item.id}`} className="flex flex-col gap-3 p-4 transition hover:bg-accent sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><p className="truncate font-medium">{item.title || "Başlıksız kayıt"}</p><p className="mt-1 text-sm text-muted-foreground">{item.provider || categoryLabel(item.category)} · {item.category || "other"}</p></div><div className="flex flex-wrap items-center gap-3 text-sm"><span className="font-medium">{formatMoney(item.amount, item.currency) ?? "Tutar belirtilmemiş"}</span>{item.next_due_date && <span className={`rounded-full px-2.5 py-1 text-xs ${overdue ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>{overdue ? "Gecikmiş" : formatDueDate(item.next_due_date)}</span>}</div></Link>; })}</div>;
+}
