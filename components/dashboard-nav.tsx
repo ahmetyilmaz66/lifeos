@@ -8,10 +8,12 @@ import {
   CreditCard,
   FileText,
   GitCommitVertical,
+  Grid2x2,
   Inbox,
   LayoutDashboard,
   Package,
   PiggyBank,
+  Plus,
   Search,
   Settings,
   ShieldCheck,
@@ -37,6 +39,7 @@ const icons: Record<string, LucideIcon> = {
   FileText,
   Settings,
   ShieldCheck,
+  Grid2x2,
 };
 
 type NavItem = { label: string; href: string; icon: string };
@@ -72,28 +75,54 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
   );
 }
 
-export function MobileNav({ items }: { items: NavItem[] }) {
+// Fixed to the viewport bottom (not inline page content) so it's always
+// reachable without scrolling. 2 tabs + a raised center action + 2 tabs;
+// "Daha Fazla" is the escape hatch to every section that doesn't fit here.
+export function MobileNav({ items, ctaHref }: { items: NavItem[]; ctaHref: string }) {
   const pathname = usePathname();
+  const left = items.slice(0, 2);
+  const right = items.slice(2);
+
+  function tabClass(active: boolean) {
+    return active
+      ? "flex flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] font-medium text-violet-400"
+      : "flex flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-center text-[10px] text-muted-foreground";
+  }
+
   return (
-    <nav className="mx-5 mb-5 grid grid-cols-5 gap-1 rounded-xl border border-border bg-card p-2 lg:hidden" aria-label="Mobil LifeOS menüsü">
-      {items.map(({ label, href, icon }) => {
-        const Icon = icons[icon] ?? LayoutDashboard;
-        const active = isActive(pathname, href);
-        return (
+    <nav
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      aria-label="Mobil LifeOS menüsü"
+    >
+      <div className="mx-auto grid max-w-md grid-cols-5 items-center px-2 pt-1.5">
+        {left.map(({ label, href, icon }) => {
+          const Icon = icons[icon] ?? LayoutDashboard;
+          return (
+            <Link key={href} href={href} className={tabClass(isActive(pathname, href))}>
+              <Icon size={19} />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
+        <div className="flex justify-center">
           <Link
-            key={href}
-            href={href}
-            className={
-              active
-                ? "flex flex-col items-center gap-1 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-500 p-2 text-center text-[10px] font-medium text-white"
-                : "flex flex-col items-center gap-1 rounded-lg p-2 text-center text-[10px] text-muted-foreground hover:bg-accent"
-            }
+            href={ctaHref}
+            aria-label="Hayatıma Ekle"
+            className="-mt-7 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white shadow-lg shadow-violet-900/40 ring-4 ring-background"
           >
-            <Icon size={16} />
-            <span>{label}</span>
+            <Plus size={26} />
           </Link>
-        );
-      })}
+        </div>
+        {right.map(({ label, href, icon }) => {
+          const Icon = icons[icon] ?? LayoutDashboard;
+          return (
+            <Link key={href} href={href} className={tabClass(isActive(pathname, href))}>
+              <Icon size={19} />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }

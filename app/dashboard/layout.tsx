@@ -42,8 +42,16 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
       </aside>
       <main className="min-h-screen lg:pl-64">
         <header className="flex h-16 items-center justify-between border-b border-border bg-card/80 px-5 backdrop-blur lg:px-10"><div className="flex items-center gap-2 text-sm font-medium lg:hidden"><Sparkles size={17} /> LifeOS</div><div className="hidden lg:block" /><div className="flex items-center gap-4 text-sm text-muted-foreground"><Bell size={17} /><span className="hidden sm:inline">{firstName ?? "Hesabım"}</span></div></header>
-        <div className="mx-auto max-w-7xl px-5 py-8 lg:px-10 lg:py-12">{children}</div>
-        <MobileNav items={[...navigation.slice(0, 4), { label: "Ayarlar", href: "/dashboard/settings", icon: "Settings" }]} />
+        <div className="mx-auto max-w-7xl px-5 pb-28 pt-8 lg:px-10 lg:py-12">{children}</div>
+        <MobileNav
+          items={[
+            { label: "Genel Bakış", href: "/dashboard", icon: "LayoutDashboard" },
+            { label: "Bugün", href: "/dashboard/today", icon: "CalendarDays" },
+            { label: "Ara", href: "/dashboard/search", icon: "Search" },
+            { label: "Daha Fazla", href: "/dashboard/more", icon: "Grid2x2" },
+          ]}
+          ctaHref="/dashboard/documents"
+        />
       </main>
     </div>
   );
