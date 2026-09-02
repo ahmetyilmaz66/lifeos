@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, FileUp, Loader2, Mic, MicOff, UploadCloud, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useVoiceDictation } from "@/hooks/use-voice-dictation";
 
 const acceptedTypes = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp", "text/plain"]);
 const acceptedExtensions = ".pdf,.jpg,.jpeg,.png,.webp";
@@ -29,50 +30,9 @@ export default function DocumentUpload() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [listening, setListening] = useState(false);
-  const [voiceSupported, setVoiceSupported] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recognitionRef = useRef<any>(null);
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    setVoiceSupported(!!SpeechRecognition);
-    return () => recognitionRef.current?.stop();
-  }, []);
-
-  function toggleListening() {
-    if (listening) {
-      recognitionRef.current?.stop();
-      return;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const recognition = new SpeechRecognition();
-    recognition.lang = "tr-TR";
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    const baseText = textValue.trim();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recognition.onresult = (event: any) => {
-      let finalText = "";
-      let interimText = "";
-      for (let i = 0; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalText += `${transcript} `;
-        else interimText += transcript;
-      }
-      const combined = [baseText, finalText.trim()].filter(Boolean).join(" ");
-      setTextValue(interimText ? `${combined} ${interimText}` : combined);
-    };
-    recognition.onerror = () => setListening(false);
-    recognition.onend = () => setListening(false);
-    recognitionRef.current = recognition;
-    recognition.start();
-    setListening(true);
-  }
+  const { listening, supported: voiceSupported, toggle: toggleListening } = useVoiceDictation((finalizedText) => {
+    setTextValue((prev) => [prev.trim(), finalizedText].filter(Boolean).join(" "));
+  });
 
   function chooseFile(nextFile: File | undefined) {
     setError(null); setMessage(null);
