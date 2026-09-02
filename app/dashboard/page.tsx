@@ -65,19 +65,19 @@ export default async function DashboardPage() {
   const activeSubscriptions = lifeItems.filter((item) => item.category === "digital_subscription" && !isClosed(item)).length;
   const monthlyTotal = paymentSummary(lifeItems, monthStart, nextMonth);
   const pills = [
-    [Repeat2, `${activeSubscriptions} Aktif Abonelik`],
-    [CalendarClock, `${upcomingItems.length} Yaklaşan İşlem`],
-    [FileText, `${documentCount ?? 0} Belge`],
+    [Repeat2, `${activeSubscriptions} Aktif Abonelik`, "bg-[#2a78d6]"],
+    [CalendarClock, `${upcomingItems.length} Yaklaşan İşlem`, "bg-[#e87ba4]"],
+    [FileText, `${documentCount ?? 0} Belge`, "bg-[#1baf7a]"],
   ] as const;
   const name = profile?.full_name?.trim();
   const spending = categorySpendingBreakdown(lifeItems);
   return <div className="space-y-8">
     <section className="flex items-center justify-between gap-4"><div><p className="text-sm font-medium text-muted-foreground">Genel Bakış</p><h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Günaydın{name ? `, ${name}` : ""}</h1></div><Link href="/dashboard/documents" className="hidden h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 text-sm font-semibold text-white shadow-md shadow-violet-900/30 transition hover:opacity-90 sm:inline-flex"><Plus size={18} /> Hayatıma Ekle</Link></section>
-    <section className="overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-violet-600/15 via-card to-card p-6 sm:p-8">
+    <section className="overflow-hidden rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-600/20 via-card to-fuchsia-500/10 p-6 shadow-lg shadow-violet-950/20 sm:p-8">
       <p className="text-sm text-muted-foreground">Bu Ay Toplam Ödeme</p>
       <p className="mt-2 text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">{monthlyTotal}</p>
       <div className="mt-6 flex flex-wrap gap-2">
-        {pills.map(([Icon, label]) => <span key={label} className="inline-flex items-center gap-1.5 rounded-full bg-background/60 px-3 py-1.5 text-xs font-medium text-foreground"><Icon size={14} className="text-violet-400" />{label}</span>)}
+        {pills.map(([Icon, label, color]) => <span key={label} className="inline-flex items-center gap-2 rounded-full bg-background/70 py-1.5 pl-1.5 pr-3 text-xs font-medium text-foreground"><span className={`flex h-5 w-5 items-center justify-center rounded-full text-white ${color}`}><Icon size={12} /></span>{label}</span>)}
       </div>
     </section>
     <section className="space-y-4 rounded-xl border border-border bg-card p-6"><div><p className="text-sm font-medium text-muted-foreground">Harcama</p><h2 className="mt-1 text-xl font-semibold tracking-tight">Kategori Bazlı Dağılım</h2></div><CategorySpendingChart segments={spending.segments} currency={spending.currency} /></section>
