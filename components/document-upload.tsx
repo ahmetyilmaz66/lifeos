@@ -59,6 +59,18 @@ export default function DocumentUpload() {
       await supabase.storage.from("lifeos-documents").remove([storagePath]);
       setError("Belge kaydı oluşturulamadı; yüklenen dosya temizlendi."); setUploading(false); return;
     }
+
+    // Trigger the existing analyze endpoint automatically. Upload has already
+    // succeeded above, so any failure here must never surface as an upload
+    // error — the document's processing_status stays the source of truth,
+    // and the manual "Analiz Et" fallback in DocumentAnalysisReview remains
+    // available if this doesn't land in time.
+    try {
+      await fetch(`/api/documents/${documentId}/analyze`, { method: "POST" });
+    } catch {
+      // ignore — non-2xx or network failure here does not affect the upload result
+    }
+
     setFile(null); setTextValue(""); setMessage("Belgen LifeOS'a eklendi. Analiz için hazır."); setUploading(false); router.refresh();
   }
 
