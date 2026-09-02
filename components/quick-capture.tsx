@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Check, ImageIcon, Loader2, Type, X } from "lucide-react";
+import { Camera, Check, ImageIcon, Loader2, Mic, MicOff, Type, X } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 
@@ -46,6 +46,10 @@ export default function QuickCapture() {
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const [stage, setStage] = useState<"idle" | "text" | "working" | "review">("idle");
   const [textInput, setTextInput] = useState("");
+  const [listening, setListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [documentId, setDocumentId] = useState<string | null>(null);
@@ -53,6 +57,48 @@ export default function QuickCapture() {
   const [values, setValues] = useState<Record<string, string>>({});
   const [category, setCategory] = useState<(typeof categories)[number]>("other");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    setVoiceSupported(!!SpeechRecognition);
+    return () => recognitionRef.current?.stop();
+  }, []);
+
+  function toggleListening() {
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recognition = new SpeechRecognition();
+    recognition.lang = "tr-TR";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    const baseText = textInput.trim();
+    // Rebuild from all results each time (not just the incremental slice) so
+    // there's one stable source of truth — avoids double-appending text.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (event: any) => {
+      let finalText = "";
+      let interimText = "";
+      for (let i = 0; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += `${transcript} `;
+        else interimText += transcript;
+      }
+      const combined = [baseText, finalText.trim()].filter(Boolean).join(" ");
+      setTextInput(interimText ? `${combined} ${interimText}` : combined);
+    };
+    recognition.onerror = () => setListening(false);
+    recognition.onend = () => setListening(false);
+    recognitionRef.current = recognition;
+    recognition.start();
+    setListening(true);
+  }
 
   async function handleFile(file: File | undefined) {
     if (!file) return;
@@ -231,14 +277,29 @@ export default function QuickCapture() {
   if (stage === "text") {
     return (
       <div className="space-y-3">
-        <textarea
-          autoFocus
-          value={textInput}
-          onChange={(event) => setTextInput(event.target.value)}
-          rows={8}
-          placeholder="Örn: Netflix Premium aboneliğim ayda 349 TL, her ayın 14'ünde ödeniyor."
-          className="w-full rounded-2xl border border-border bg-card p-4 text-sm outline-none focus:ring-1 focus:ring-ring"
-        />
+        <div className="relative">
+          <textarea
+            autoFocus
+            value={textInput}
+            onChange={(event) => setTextInput(event.target.value)}
+            rows={8}
+            placeholder="Örn: Netflix Premium aboneliğim ayda 349 TL, her ayın 14'ünde ödeniyor. Ya da mikrofona konuş."
+            className="w-full rounded-2xl border border-border bg-card p-4 pb-14 text-sm outline-none focus:ring-1 focus:ring-ring"
+          />
+          {voiceSupported && (
+            <button
+              type="button"
+              onClick={toggleListening}
+              aria-label={listening ? "Dinlemeyi durdur" : "Mikrofonla konuş"}
+              className={`absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full transition ${
+                listening ? "animate-pulse bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white shadow-md shadow-violet-900/30" : "border border-border bg-background text-muted-foreground hover:bg-accent"
+              }`}
+            >
+              {listening ? <MicOff size={17} /> : <Mic size={17} />}
+            </button>
+          )}
+        </div>
+        {listening && <p className="text-xs text-violet-400">Dinliyorum... bitirince mikrofona tekrar bas.</p>}
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <div className="flex gap-2">
           <button
