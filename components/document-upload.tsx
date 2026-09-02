@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, FileUp, Loader2, UploadCloud, X } from "lucide-react";
+import { CheckCircle2, FileUp, Loader2, Mic, MicOff, UploadCloud, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
@@ -29,6 +29,50 @@ export default function DocumentUpload() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    setVoiceSupported(!!SpeechRecognition);
+    return () => recognitionRef.current?.stop();
+  }, []);
+
+  function toggleListening() {
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recognition = new SpeechRecognition();
+    recognition.lang = "tr-TR";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    const baseText = textValue.trim();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (event: any) => {
+      let finalText = "";
+      let interimText = "";
+      for (let i = 0; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += `${transcript} `;
+        else interimText += transcript;
+      }
+      const combined = [baseText, finalText.trim()].filter(Boolean).join(" ");
+      setTextValue(interimText ? `${combined} ${interimText}` : combined);
+    };
+    recognition.onerror = () => setListening(false);
+    recognition.onend = () => setListening(false);
+    recognitionRef.current = recognition;
+    recognition.start();
+    setListening(true);
+  }
 
   function chooseFile(nextFile: File | undefined) {
     setError(null); setMessage(null);
@@ -61,7 +105,7 @@ export default function DocumentUpload() {
   return <div className="space-y-5 rounded-xl border border-border bg-card p-6 sm:p-8">
     <div><h2 className="text-lg font-semibold">Belge yükle</h2><p className="mt-1 text-sm text-muted-foreground">PDF, JPG, JPEG, PNG, WEBP veya metin · En fazla 10 MB</p></div>
     <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted p-1"><button type="button" onClick={() => setMode("file")} className={`rounded-md px-2 py-2 text-sm ${mode === "file" ? "bg-card font-medium shadow-sm" : "text-muted-foreground"}`}>Dosya yükle</button><button type="button" onClick={() => setMode("photo")} className={`rounded-md px-2 py-2 text-sm ${mode === "photo" ? "bg-card font-medium shadow-sm" : "text-muted-foreground"}`}>Fotoğraf</button><button type="button" onClick={() => setMode("text")} className={`rounded-md px-2 py-2 text-sm ${mode === "text" ? "bg-card font-medium shadow-sm" : "text-muted-foreground"}`}>Metin gir</button></div>
-    {mode === "text" ? <textarea value={textValue} onChange={(event) => setTextValue(event.target.value)} rows={6} placeholder="Örn: Netflix Premium aboneliğim ayda 349 TL, her ayın 14'ünde ödeniyor." className="w-full rounded-lg border border-border bg-background p-4 text-sm outline-none focus:ring-1 focus:ring-ring" /> : <button type="button" className={`flex min-h-44 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition ${dragging ? "border-primary bg-accent" : "border-border hover:border-muted-foreground"}`} onClick={() => inputRef.current?.click()} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(event) => { event.preventDefault(); setDragging(false); chooseFile(event.dataTransfer.files[0]); }}><UploadCloud className="mb-3 text-muted-foreground" size={30} /><span className="font-medium">{mode === "photo" ? "Fotoğrafı sürükleyip bırak veya seç" : "Dosyanı sürükleyip bırak veya seç"}</span><span className="mt-1 text-sm text-muted-foreground">Güvenli ve özel depolama</span><input ref={inputRef} className="hidden" type="file" accept={acceptedExtensions} capture={mode === "photo" ? "environment" : undefined} onChange={(event) => chooseFile(event.target.files?.[0])} /></button>}
+    {mode === "text" ? <div className="relative"><textarea value={textValue} onChange={(event) => setTextValue(event.target.value)} rows={6} placeholder="Örn: Netflix Premium aboneliğim ayda 349 TL, her ayın 14'ünde ödeniyor. Ya da mikrofona konuş." className="w-full rounded-lg border border-border bg-background p-4 pb-14 text-sm outline-none focus:ring-1 focus:ring-ring" />{voiceSupported && <button type="button" onClick={toggleListening} aria-label={listening ? "Dinlemeyi durdur" : "Mikrofonla konuş"} className={`absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full transition ${listening ? "animate-pulse bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white shadow-md shadow-violet-900/30" : "border border-border bg-card text-muted-foreground hover:bg-accent"}`}>{listening ? <MicOff size={17} /> : <Mic size={17} />}</button>}</div> : <button type="button" className={`flex min-h-44 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition ${dragging ? "border-primary bg-accent" : "border-border hover:border-muted-foreground"}`} onClick={() => inputRef.current?.click()} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(event) => { event.preventDefault(); setDragging(false); chooseFile(event.dataTransfer.files[0]); }}><UploadCloud className="mb-3 text-muted-foreground" size={30} /><span className="font-medium">{mode === "photo" ? "Fotoğrafı sürükleyip bırak veya seç" : "Dosyanı sürükleyip bırak veya seç"}</span><span className="mt-1 text-sm text-muted-foreground">Güvenli ve özel depolama</span><input ref={inputRef} className="hidden" type="file" accept={acceptedExtensions} capture={mode === "photo" ? "environment" : undefined} onChange={(event) => chooseFile(event.target.files?.[0])} /></button>}
     {file && <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 p-3 text-sm"><span className="flex min-w-0 items-center gap-2"><FileUp size={17} /><span className="truncate">{file.name}</span></span><button type="button" aria-label="Dosyayı kaldır" onClick={() => setFile(null)}><X size={17} /></button></div>}
     {uploading && <div className="space-y-2" aria-live="polite"><div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full w-1/3 animate-pulse rounded-full bg-primary" /></div><p className="text-sm text-muted-foreground">Belge yükleniyor...</p></div>}
     {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
