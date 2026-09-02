@@ -2,9 +2,44 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
+import {
+  Archive,
+  CalendarDays,
+  CreditCard,
+  FileText,
+  GitCommitVertical,
+  Inbox,
+  LayoutDashboard,
+  Package,
+  PiggyBank,
+  Search,
+  Settings,
+  ShieldCheck,
+  WalletCards,
+  type LucideIcon,
+} from "lucide-react";
 
-type NavItem = { label: string; href: string; icon: LucideIcon };
+// Server Components can't pass component/function references as props to
+// Client Components (fails RSC serialization). So the nav data crossing that
+// boundary carries icon *names*, and this client-only file maps them back to
+// the actual Lucide components.
+const icons: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  CalendarDays,
+  GitCommitVertical,
+  Search,
+  PiggyBank,
+  Inbox,
+  CreditCard,
+  WalletCards,
+  Archive,
+  Package,
+  FileText,
+  Settings,
+  ShieldCheck,
+};
+
+type NavItem = { label: string; href: string; icon: string };
 
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
@@ -15,7 +50,8 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   return (
     <nav className="flex-1 space-y-1 px-3 py-5" aria-label="LifeOS menüsü">
-      {items.map(({ label, href, icon: Icon }) => {
+      {items.map(({ label, href, icon }) => {
+        const Icon = icons[icon] ?? LayoutDashboard;
         const active = isActive(pathname, href);
         return (
           <Link
@@ -40,7 +76,8 @@ export function MobileNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   return (
     <nav className="mx-5 mb-5 grid grid-cols-5 gap-1 rounded-xl border border-border bg-card p-2 lg:hidden" aria-label="Mobil LifeOS menüsü">
-      {items.map(({ label, href, icon: Icon }) => {
+      {items.map(({ label, href, icon }) => {
+        const Icon = icons[icon] ?? LayoutDashboard;
         const active = isActive(pathname, href);
         return (
           <Link

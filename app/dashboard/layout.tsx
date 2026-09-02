@@ -1,23 +1,26 @@
 import { redirect } from "next/navigation";
-import { Archive, Bell, CalendarDays, CreditCard, FileText, GitCommitVertical, Inbox, LayoutDashboard, Package, PiggyBank, Search, Settings, ShieldCheck, Sparkles, WalletCards } from "lucide-react";
+import { Bell, Sparkles } from "lucide-react";
 
 import { LogoutButton } from "@/components/logout-button";
 import { SidebarNav, MobileNav } from "@/components/dashboard-nav";
 import { createClient } from "@/lib/supabase/server";
 
+// Icons are referenced by name (not component) because this is a Server
+// Component and SidebarNav/MobileNav are Client Components — passing an
+// actual component/function reference across that boundary isn't serializable.
 const navigation = [
-  { label: "Genel Bakış", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Bugün", href: "/dashboard/today", icon: CalendarDays },
-  { label: "Zaman Akışı", href: "/dashboard/timeline", icon: GitCommitVertical },
-  { label: "Ara", href: "/dashboard/search", icon: Search },
-  { label: "ParaKaçağı", href: "/dashboard/savings", icon: PiggyBank },
-  { label: "Gelen Kutusu", href: "/dashboard/inbox", icon: Inbox },
-  { label: "Abonelikler", href: "/dashboard/subscriptions", icon: CreditCard },
-  { label: "Faturalar", href: "/dashboard/bills", icon: WalletCards },
-  { label: "Araçlar", href: "/dashboard/vehicles", icon: Archive },
-  { label: "Ürün & Garanti", href: "/dashboard/products", icon: Package },
-  { label: "Belgeler", href: "/dashboard/documents", icon: FileText },
-  { label: "Ayarlar", href: "/dashboard/settings", icon: Settings },
+  { label: "Genel Bakış", href: "/dashboard", icon: "LayoutDashboard" },
+  { label: "Bugün", href: "/dashboard/today", icon: "CalendarDays" },
+  { label: "Zaman Akışı", href: "/dashboard/timeline", icon: "GitCommitVertical" },
+  { label: "Ara", href: "/dashboard/search", icon: "Search" },
+  { label: "ParaKaçağı", href: "/dashboard/savings", icon: "PiggyBank" },
+  { label: "Gelen Kutusu", href: "/dashboard/inbox", icon: "Inbox" },
+  { label: "Abonelikler", href: "/dashboard/subscriptions", icon: "CreditCard" },
+  { label: "Faturalar", href: "/dashboard/bills", icon: "WalletCards" },
+  { label: "Araçlar", href: "/dashboard/vehicles", icon: "Archive" },
+  { label: "Ürün & Garanti", href: "/dashboard/products", icon: "Package" },
+  { label: "Belgeler", href: "/dashboard/documents", icon: "FileText" },
+  { label: "Ayarlar", href: "/dashboard/settings", icon: "Settings" },
 ];
 
 export default async function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -28,7 +31,7 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
 
   const { data: profile } = await supabase.from("profiles").select("full_name, is_admin").eq("id", userId).maybeSingle();
   const firstName = profile?.full_name?.trim().split(/\s+/)[0];
-  const nav = profile?.is_admin ? [...navigation, { label: "Admin", href: "/admin", icon: ShieldCheck }] : navigation;
+  const nav = profile?.is_admin ? [...navigation, { label: "Admin", href: "/admin", icon: "ShieldCheck" }] : navigation;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -40,7 +43,7 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
       <main className="min-h-screen lg:pl-64">
         <header className="flex h-16 items-center justify-between border-b border-border bg-card/80 px-5 backdrop-blur lg:px-10"><div className="flex items-center gap-2 text-sm font-medium lg:hidden"><Sparkles size={17} /> LifeOS</div><div className="hidden lg:block" /><div className="flex items-center gap-4 text-sm text-muted-foreground"><Bell size={17} /><span className="hidden sm:inline">{firstName ?? "Hesabım"}</span></div></header>
         <div className="mx-auto max-w-7xl px-5 py-8 lg:px-10 lg:py-12">{children}</div>
-        <MobileNav items={[...navigation.slice(0, 4), { label: "Ayarlar", href: "/dashboard/settings", icon: Settings }]} />
+        <MobileNav items={[...navigation.slice(0, 4), { label: "Ayarlar", href: "/dashboard/settings", icon: "Settings" }]} />
       </main>
     </div>
   );
