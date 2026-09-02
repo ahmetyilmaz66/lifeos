@@ -65,16 +65,24 @@
   body {
     @apply bg-background text-foreground;
   }
-  /* Soft glowing color blobs behind the dark theme's flat background — gives
-     the app depth/energy instead of a single flat dark tone. Fixed so it
-     doesn't scroll with content; low-opacity so text/card contrast holds. */
+  /* Glowing color wash behind the dark theme's flat background — gives the
+     app depth/energy instead of a single flat dark tone. A fixed pseudo-element
+     (not `background-attachment: fixed`, which is unreliable in some mobile
+     WebViews/TWAs) so it holds still and covers the full viewport behind
+     scrolling content; kept low enough opacity that card/text contrast holds. */
   .dark body {
+    position: relative;
+  }
+  .dark body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
     background-image:
-      radial-gradient(ellipse 70% 45% at 15% -10%, rgb(139 92 246 / 0.28), transparent 60%),
-      radial-gradient(ellipse 55% 40% at 105% 5%, rgb(217 70 239 / 0.18), transparent 60%),
-      radial-gradient(ellipse 60% 45% at 90% 95%, rgb(139 92 246 / 0.14), transparent 60%),
-      radial-gradient(ellipse 50% 35% at 0% 90%, rgb(59 130 246 / 0.1), transparent 60%);
-    background-attachment: fixed;
-    background-repeat: no-repeat;
+      radial-gradient(ellipse 90% 60% at 20% -15%, rgb(139 92 246 / 0.38), transparent 70%),
+      radial-gradient(ellipse 70% 55% at 110% 0%, rgb(217 70 239 / 0.28), transparent 70%),
+      radial-gradient(ellipse 80% 60% at 85% 100%, rgb(139 92 246 / 0.22), transparent 70%),
+      radial-gradient(ellipse 60% 45% at -5% 95%, rgb(59 130 246 / 0.16), transparent 70%);
   }
 }

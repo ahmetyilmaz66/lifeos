@@ -2,11 +2,11 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Check, ImageIcon, Loader2, X } from "lucide-react";
+import { Camera, Check, ImageIcon, Loader2, Type, X } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 
-const acceptedTypes = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
+const acceptedTypes = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp", "text/plain"]);
 const maxFileSize = 10 * 1024 * 1024;
 
 function sanitizeFileName(fileName: string) {
@@ -44,7 +44,8 @@ export default function QuickCapture() {
   const router = useRouter();
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
-  const [stage, setStage] = useState<"idle" | "working" | "review">("idle");
+  const [stage, setStage] = useState<"idle" | "text" | "working" | "review">("idle");
+  const [textInput, setTextInput] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [documentId, setDocumentId] = useState<string | null>(null);
@@ -157,6 +158,14 @@ export default function QuickCapture() {
     setAnalysis(null);
     setDocumentId(null);
     setError(null);
+    setTextInput("");
+  }
+
+  function submitText() {
+    const trimmed = textInput.trim();
+    if (!trimmed) return;
+    const file = new File([trimmed], "metin.txt", { type: "text/plain" });
+    handleFile(file);
   }
 
   if (stage === "working") {
@@ -219,6 +228,35 @@ export default function QuickCapture() {
     );
   }
 
+  if (stage === "text") {
+    return (
+      <div className="space-y-3">
+        <textarea
+          autoFocus
+          value={textInput}
+          onChange={(event) => setTextInput(event.target.value)}
+          rows={8}
+          placeholder="Örn: Netflix Premium aboneliğim ayda 349 TL, her ayın 14'ünde ödeniyor."
+          className="w-full rounded-2xl border border-border bg-card p-4 text-sm outline-none focus:ring-1 focus:ring-ring"
+        />
+        {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={!textInput.trim()}
+            onClick={submitText}
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 py-3 text-sm font-semibold text-white shadow-md shadow-violet-900/30 disabled:opacity-50"
+          >
+            <Check size={16} /> Analiz Et
+          </button>
+          <button type="button" onClick={reset} aria-label="İptal" className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-4 py-3 text-sm hover:bg-accent">
+            <X size={16} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(event) => handleFile(event.target.files?.[0])} />
@@ -238,7 +276,14 @@ export default function QuickCapture() {
       >
         <ImageIcon size={18} /> Galeriden veya Dosyadan Seç
       </button>
-      <p className="text-center text-xs text-muted-foreground">PDF, JPG, PNG veya WEBP · En fazla 10 MB</p>
+      <button
+        type="button"
+        onClick={() => setStage("text")}
+        className="flex w-full items-center justify-center gap-3 rounded-2xl border border-border bg-card py-4 text-sm font-medium text-foreground hover:bg-accent"
+      >
+        <Type size={18} /> Metin Gir
+      </button>
+      <p className="text-center text-xs text-muted-foreground">PDF, JPG, PNG, WEBP veya metin · En fazla 10 MB</p>
     </div>
   );
 }
