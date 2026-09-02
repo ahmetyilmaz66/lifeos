@@ -50,7 +50,7 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
             { label: "Ara", href: "/dashboard/search", icon: "Search" },
             { label: "Daha Fazla", href: "/dashboard/more", icon: "Grid2x2" },
           ]}
-          ctaHref="/dashboard/documents"
+          ctaHref="/dashboard/documents/new"
         />
       </main>
     </div>
